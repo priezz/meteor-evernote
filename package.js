@@ -1,8 +1,8 @@
 Package.describe({
 	name: 'priezz:evernote',
 	summary: "Evernote OAuth flow",
-	version: "0.2.3",
-	//git: "https://github.com/priezz/meteor-accounts-evernote.git"
+	version: "0.3.0",
+	git: "https://github.com/priezz/meteor-evernote.git"
 });
 
 Npm.depends({
@@ -15,7 +15,8 @@ Package.onUse(function(api) {
 
 	api.use('oauth', ['client', 'server']);
 	api.use('oauth1', ['client', 'server']);
-	api.use('http', ['server']);
+	api.use('http', 'server');
+	// api.use('npm-container', 'server');
 	api.use('templating', 'client');
 	api.use('underscore', 'server');
 	api.use('random', 'client');

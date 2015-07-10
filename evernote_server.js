@@ -2,15 +2,15 @@
 const serviceName = 'evernote';
 
 Evernote = {};
+Evernote = Npm.require("evernote").Evernote;
 
 var querystring = Npm.require("querystring");
-var EvernoteApi  = Meteor["npmRequire"]("evernote").Evernote;
 //declare var Async;
 
 var _config = ServiceConfiguration.configurations.findOne({service: serviceName});
 var _sandbox =  _config ? _config.sandbox || false : false;
 var _sub = 'www';
-if (_sandbox === "true") _sub = 'sandbox';
+if (_sandbox === true) _sub = 'sandbox';
 
 var urls = {
 	requestToken: "https://" + _sub + ".evernote.com/oauth", // first request
@@ -26,14 +26,15 @@ OAuth.registerService(serviceName, 1, urls, function(oauthBinding) {
 			id:                 oauthBinding.userId
 			,name:              "username"
 			,expiresAt:         oauthBinding.expires
+			,sandbox:			oauthBinding._config.sandbox
 		};
-	var whitelisted = [ 'accessToken', 'accessTokenSecret', 'noteStoreUrl', 'webApiUrlPrefix', 'shard'];
+	var whitelisted = [ 'accessToken', 'accessTokenSecret', 'noteStoreUrl', 'webApiUrlPrefix', 'shard' ];
 	var fields = _.pick(oauthBinding, whitelisted);
     _.extend(serviceData, fields);
 
-	var identity = getIdentity(serviceData.accessToken);
+	var identity = getIdentity(serviceData.accessToken, serviceData.sandbox);
 	whitelisted = [ 'name', 'active', 'username', 'privilege',
-                    'premiumServiceStatus', 'premiumServiceStart', 'premiumServiceSKU'];
+                    'premiumServiceStatus', 'premiumServiceStart', 'premiumServiceSKU', 'timezone' ];
     if (identity) {
 		fields = _.pick(identity, whitelisted);
     	_.extend(serviceData, fields);
@@ -42,7 +43,7 @@ OAuth.registerService(serviceName, 1, urls, function(oauthBinding) {
 	return {
 		serviceData: serviceData,
 		options: {
-			profile: { name: serviceData.name }
+			profile: { name: serviceData.name, timezone: serviceData.timezone }
 		}
 	};
 });
@@ -80,9 +81,9 @@ OAuth1Binding.prototype.prepareAccessToken = function(query, requestTokenSecret)
 };
 
 
-var getIdentity = function (accessToken) {
+var getIdentity = function (accessToken, sandbox) {
 	try {
-		var client = new EvernoteApi.Client({token: accessToken});
+		var client = new Evernote.Client({token: accessToken, sandbox: sandbox});
 		var userStore = client.getUserStore();
 		var userData = Async.wrap(userStore, "getUser")();
 		if (userData) return userData;
