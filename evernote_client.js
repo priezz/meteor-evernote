@@ -1,36 +1,38 @@
+/* Client */
 
-const serviceName = 'evernote';
+const serviceName = 'evernote'
 
-Evernote = {};
+Evernote = {}
 
 
-Evernote.requestCredential = function (options, credentialRequestCompleteCallback) {
+Evernote.requestCredential = (options, credentialRequestCompleteCallback) => {
 	if (!credentialRequestCompleteCallback && typeof options === 'function') {
-		credentialRequestCompleteCallback = options;
-		options = {};
+		credentialRequestCompleteCallback = options
+		options = {}
 	}
 
-	var config = ServiceConfiguration.configurations.findOne({service: serviceName});
+	let config = ServiceConfiguration.configurations.findOne({service: serviceName})
 	if (!config) {
-		credentialRequestCompleteCallback && credentialRequestCompleteCallback( new ServiceConfiguration.ConfigError() );
-		return;
+		credentialRequestCompleteCallback && credentialRequestCompleteCallback( new ServiceConfiguration.ConfigError() )
+		return
 	}
 
-	var credentialToken = Random.secret();
-	var mobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry/i.test(navigator.userAgent);
-	var loginStyle = mobile || Meteor.isCordova ? "touch" : "popup";
+	let credentialToken = Random.secret()
+	let mobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry/i.test(navigator.userAgent)
+	// let loginStyle = mobile || Meteor.isCordova ? "touch" : "popup"
+	let loginStyle = mobile || Meteor.isCordova ? "redirect" : config.loginStyle || "redirect"
 
 	// We need to keep credentialToken across the next two 'steps' so we're adding
 	// a credentialToken parameter to the url and the callback url that we'll be returned
 	// to by oauth provider
-	var loginUrl = "_oauth/" + serviceName + "/?requestTokenAndRedirect=true" + '&state=' + OAuth._stateParam(loginStyle, credentialToken);
+	let loginUrl = "_oauth/" + serviceName + "/?requestTokenAndRedirect=true" + '&state=' + OAuth._stateParam(loginStyle, credentialToken)
 	if (Meteor.isCordova) {
-		loginUrl = loginUrl + "&cordova=true";
+		loginUrl = loginUrl + "&cordova=true"
 		if (/Android/i.test(navigator.userAgent)) {
-			loginUrl = loginUrl + "&android=true";
+			loginUrl = loginUrl + "&android=true"
 		}
 	}
-	loginUrl = Meteor.absoluteUrl(loginUrl);
+	loginUrl = Meteor.absoluteUrl(loginUrl)
 
 	OAuth.launchLogin({
 		loginService: serviceName
@@ -39,5 +41,5 @@ Evernote.requestCredential = function (options, credentialRequestCompleteCallbac
 		, credentialRequestCompleteCallback: credentialRequestCompleteCallback
 		, credentialToken: credentialToken
 		, popupOptions: { height: 600 }
-	});
-};
+	})
+}
